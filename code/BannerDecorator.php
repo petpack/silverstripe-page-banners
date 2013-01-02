@@ -108,17 +108,24 @@ class BannerDecorator extends DataObjectDecorator {
 	public function Banner() {
 		$rv = false;
 		switch( $this->owner->BannerType ) {
-			case 'Image':
-				$rv = new Banner();
-				$rv->Image = $this->owner->BannerImage();
-				break;
-			case 'SingleBanner':
-				$rv = $this->owner->SingleBanner();
-				break;
 			case 'BannerGroup':
 				if( $group = $this->owner->BannerGroup() ) { /* @var $group BannerGroup */
 					$rv = $group->RandomBanner();
 				}
+				break;
+			case 'Image':
+				$rv = new Banner();
+				$rv->Image = $this->owner->BannerImage();
+				break;
+			case 'None':
+				if( self::$inheritFromParent && $this->owner->hasMethod('Subsite') ) {
+					$subsite = $this->owner->Subsite();
+					if( $subsite->hasMethod('Banner') )
+						return $subsite->Banner();
+				}
+				break;
+			case 'SingleBanner':
+				$rv = $this->owner->SingleBanner();
 				break;
 		}
 		if( !$rv || !$rv->Image()->fileExists() ) {
@@ -172,50 +179,62 @@ class BannerDecorator extends DataObjectDecorator {
 	}
 
 	public function AllBanners() {
-		$rv = false;
+		$set = $rv = false;
+
 		switch( $this->owner->BannerType ) {
+			case 'BannerGroup':
+				if( $group = $this->owner->BannerGroup() )
+					$set = $group->Banners(null, 'SortOrder ASC');
+				break;
 			case 'Image':
 				$image = $this->owner->BannerImage();
 				break;
 			case 'SingleBanner':
 				$image = $this->owner->SingleBanner();
 				break;
-			case 'BannerGroup':
-				if( $group = $this->owner->BannerGroup() ) { /* @var $group BannerGroup */
-					$set = $group->Banners(null, 'SortOrder ASC');
-				}
-				break;
 		}
-		if( isset($image) && is_file($image->getFullPath()) ) {
+
+		if( isset($image) && $image->fileExists() )
 			$set = new DataObjectSet(array($image));
+
+		if( (!$set || !$set->Count()) && self::$inheritFromParent ) {
+			if( $this->owner->Parent )
+				$set = $this->owner->Parent->AllBanners();
+
+			if( !$set && $this->owner->hasMethod('Subsite') )
+				$set = $this->owner->Subsite()->AllBanners();
 		}
-		if( (!$set || !$set->Count()) && self::$inheritFromParent && $this->owner->Parent ) {
-			$set = $this->owner->Parent->AllBanners();
-		}
+
 		return $set;
 	}
 
 	public function BannerMarkup( $width = null, $height = null, $transform = 'SetCroppedSize' ) {
-		if( ($this->owner->BannerType == 'BannerGroup') && $this->owner->BannerCarousel ) {
-			if( $carousel = $this->CarouselMarkup($width, $height, $transform) )
-				return $carousel;
-		}
-		if( $banner = $this->Banner() )
-			return $banner->Image()->$transform($width, $height);
-	}
+		$bannerType = $this->owner->BannerType;
+		$bannerCarousel = $this->owner->BannerCarousel;
 
-	public function CarouselMarkup( $width = null, $height = null, $transform = 'SetCroppedSize' ) {
-		$items = new DataObjectSet();
-		foreach( $this->AllBanners() as $banner ) {
-			$item = new ImageCarouselItem();
-			$item->initFromDataObject($banner);
-			$items->push($item);
+		if( $bannerType == 'None' && self::$inheritFromParent && $this->owner->hasMethod('Subsite') ) {
+			$subsite = $this->owner->Subsite();
+			$bannerType = $subsite->BannerType;
+			$bannerCarousel = $subsite->BannerCarousel;
 		}
-		if( $items->Count() > 1 ) {
-			$carousel = new SlidesCarousel($items);
-			$carousel->$transform($width, $height);
-			return $carousel;
+
+		if( $bannerType == 'BannerGroup' && $bannerCarousel ) {
+			$items = new DataObjectSet();
+			if( $allBanners = $this->AllBanners() ) {
+				foreach( $allBanners as $banner ) {
+					$item = new ImageCarouselItem();
+					$item->initFromDataObject($banner);
+					$items->push($item);
+				}
+			}
+			if( $items->Count() > 1 ) {
+				$carousel = new SlidesCarousel($items);
+				$carousel->$transform($width, $height);
+				return $carousel;
+			}
 		}
+
+		return ($banner = $this->Banner()) ? $banner->Image()->$transform($width, $height) : null;
 	}
 
 	public static function removeBannerFields( FieldSet $fields, DataObject $owner ) {
