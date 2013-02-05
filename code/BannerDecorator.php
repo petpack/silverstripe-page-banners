@@ -76,24 +76,24 @@ class BannerDecorator extends DataObjectDecorator {
 			$banners = $banners->map();
 		}
 		else {
-			$banners = array('-- No banners have been created --');
+			$banners = array('-- No banners avaialable --');
 		}
-		if( $bannerGroups = DataObject::get('BannerGroup') ) { /* @var $bannerGroups DataObjectSet */
+		$filter = self::$restrictToGroup ? "ID = '".self::$restrictToGroup->ID."'" : '';
+		if( $bannerGroups = DataObject::get('BannerGroup', $filter) ) { /* @var $bannerGroups DataObjectSet */
 			$bannerGroups = $bannerGroups->map();
 		}
 		else {
-			$bannerGroups = array('-- No banner groups have been created --');
+			$bannerGroups = array('-- No banner groups available --');
 		}
 		$tabName = $this->getTabName($this->owner, $fields);
 		$fields->addFieldToTab($tabName, $field = new LiteralField('BannerImage', '<h3>Banner Image</h3>'.NL));
 		$options = array();
 		$options['None//No custom banner'] = new LiteralField(null, '');
-		if( !self::$restrictToGroup ) {
-			$options['BannerGroup//Banner group'] = new CompositeField(array(
-				new DropdownField('BannerGroupID', '', $bannerGroups),
-				new CheckboxField('BannerCarousel', 'Display the banners in a scrolling image carousel'),
-			));
-		}
+		$options['BannerGroup//Banner group'] = new CompositeField(array(
+			new DropdownField('BannerGroupID', '', $bannerGroups),
+			new CheckboxField('BannerCarousel', 'Display the banners in a scrolling image carousel'),
+		));
+
 		$options['SingleBanner//Single banner'] = new DropdownField('SingleBannerID', '', $banners);
 		$options['Image//Upload an Image'] = $upload = new ImageUploadField('BannerImage', '');
 		$banner = new SelectionGroup('BannerType', $options);
