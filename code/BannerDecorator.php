@@ -234,7 +234,15 @@ class BannerDecorator extends DataObjectDecorator {
 			}
 		}
 
-		return ($banner = $this->Banner()) ? $banner->Image()->$transform($width, $height) : null;
+		if( $banner = $this->Banner() ) {
+			$image = $this->Banner()->Image()->$transform($width, $height);
+			if( get_class($image) == 'BetterImage' ) {
+				return ($banner->LinkURL() ? '<a href="' . $banner->LinkURL() . '">' : '') .
+					$this->Banner()->Image()->$transform($width, $height)->getTag() .
+					($banner->LinkURL() ? '</a>' : '');
+			}
+		}
+		return null;
 	}
 
 	public static function removeBannerFields( FieldSet $fields, DataObject $owner ) {
