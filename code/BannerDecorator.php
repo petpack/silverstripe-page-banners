@@ -236,7 +236,7 @@ class BannerDecorator extends DataObjectDecorator {
 
 		if( $banner = $this->Banner() ) {
 			$image = $this->Banner()->Image()->$transform($width, $height);
-			if( get_class($image) == 'BetterImage' ) {
+			if( strpos(get_class($image), 'Image') !== false ) {
 				return ($banner->LinkURL() ? '<a href="' . $banner->LinkURL() . '">' : '') .
 					$this->Banner()->Image()->$transform($width, $height)->getTag() .
 					($banner->LinkURL() ? '</a>' : '');
