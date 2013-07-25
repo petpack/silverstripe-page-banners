@@ -210,8 +210,12 @@ class BannerDecorator extends DataObjectDecorator {
 
 	public function BannerMarkup( $width = null, $height = null, $transform = 'SetCroppedSize' ) {
 		$bannerType = $this->owner->BannerType;
+		//unsure how null values got in the DB, 
+		//but this aughta hold the little S.O.B:
+		if (!$bannerType) $bannerType = 'None';
+		
 		$bannerCarousel = $this->owner->BannerCarousel;
-
+		
 		if( $bannerType == 'None' && self::$inheritFromParent && $this->owner->hasMethod('Subsite') ) {
 			$subsite = $this->owner->Subsite();
 			$bannerType = $subsite->BannerType;
