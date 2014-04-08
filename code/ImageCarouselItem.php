@@ -16,8 +16,14 @@ class ImageCarouselItem extends DataObject {
 
 	protected $resizedImage;
 
-	public function initFromDataObject( $dataObject, $imageField = 'Image' ) {
-		$this->setCarouselImage($dataObject->$imageField());
+	public function initFromDataObject(DataObject $dataObject, $imageField = 'Image' ) {
+		if ($dataObject->is_a("Image")) {
+			$image = $dataObject;
+		} else {
+			$image = $dataObject->$imageField();
+		}
+			
+		$this->setCarouselImage($image);
 		foreach( self::database_fields(get_class($this)) as $field => $type ) {
 			if( $dataObject->hasField($field) ) {
 				$this->$field = $dataObject->$field;
