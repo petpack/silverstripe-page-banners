@@ -5,7 +5,7 @@
  */
 class BannerDecorator extends DataObjectDecorator {
 
-	protected static $restrictToGroup;
+	public static $restrictToGroup;
 	protected static $tabName;
 	protected static $inheritFromParent = true;
 
@@ -151,7 +151,7 @@ class BannerDecorator extends DataObjectDecorator {
 	}
 
 	public function BannerURL( $width = null, $height = null ) {
-		$image = $this->Banner()->Image();
+		$image = $this->owner->Banner()->Image();
 		if( $image->exists() && file_exists($image->getFullPath()) ) {
 			if( $height && $width )
 				$image = $image->setResizedSize($width, $height);
