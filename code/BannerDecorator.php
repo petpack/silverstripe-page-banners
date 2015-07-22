@@ -201,14 +201,23 @@ class BannerDecorator extends DataObjectDecorator {
 			if( $this->owner->Parent )
 				$set = $this->owner->Parent->AllBanners();
 
-			if( !$set && $this->owner->hasMethod('Subsite') )
-				$set = $this->owner->Subsite()->AllBanners();
+			if( !$set && $this->owner->hasMethod('Subsite') ) {
+				$subsite = $this->owner->Subsite();
+				
+				//DM: handle instances where owner->subsite returns a nonexistant record
+				//	(@see line 231)
+				if (!$subsite->exists())
+					$subsite = Subsite::currentSubsite();
+				
+				$set = $subsite->AllBanners();
+			}
 		}
 
 		return $set;
 	}
 
 	public function BannerMarkup( $width = null, $height = null, $transform = 'SetCroppedSize' ) {
+		
 		$bannerType = $this->owner->BannerType;
 		//unsure how null values got in the DB, 
 		//but this aughta hold the little S.O.B:
@@ -218,10 +227,20 @@ class BannerDecorator extends DataObjectDecorator {
 		
 		if( $bannerType == 'None' && self::$inheritFromParent && $this->owner->hasMethod('Subsite') ) {
 			$subsite = $this->owner->Subsite();
+			
+			/**
+			 * DM: Sometimes (age related content), for reasons I don't understand, 
+			 * 	$this->owner is an empty page object and doesn't have the subsite 
+			 * 	set correctly. This code uses the current subsite if none was found
+			 */
+			if (!$subsite->exists())
+				$subsite = Subsite::currentSubsite(); 
+			
 			$bannerType = $subsite->BannerType;
+			if (!$bannerType) $bannerType = 'None';
 			$bannerCarousel = $subsite->BannerCarousel;
 		}
-
+		
 		if( $bannerType == 'BannerGroup' && $bannerCarousel ) {
 			$items = new DataObjectSet();
 			if( $allBanners = $this->AllBanners() ) {
