@@ -15,7 +15,7 @@ class Banner extends DataObject {
 	/**
 	 * @return FieldSet
 	 */
-	public function getCMSFields() {
+	public function getCMSFields($params = null) {
 		$fields = FormUtils::createMain();
 		$fields->addFieldToTab('Root.Main', $field = new TextField('Title'));
 		$fields->addFieldToTab('Root.Main', $field = new TextField('ImageAlt', 'Image alt text'));

@@ -69,7 +69,7 @@ class BannerDecorator extends DataObjectDecorator {
 		);
 	}
 
-	public function updateCMSFields( FieldSet $fields ) {
+	public function updateCMSFields( FieldSet &$fields ) {
 		Requirements::css('banners/css/BannerDecorator.css');
 		$filter = self::$restrictToGroup ? "BannerGroupID = '".self::$restrictToGroup->ID."'" : '';
 		if( $banners = DataObject::get('Banner', $filter) ) { /* @var $banners DataObjectSet */
