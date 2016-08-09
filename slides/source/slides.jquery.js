@@ -29,8 +29,11 @@
 			var elem = $(this),
 				control = $('.slides_control',elem),
 				total = control.children().size(),
-				width = control.children().outerWidth(),
-				height = control.children().outerHeight(),
+				//DM: rather than using control.children(), use the img elements (since they have height and width coded in):
+				width = control.find('img').outerWidth(),
+				height = control.find('img').outerHeight(),
+				//width = control.children().outerWidth(),
+				//height = control.children().outerHeight(),
 				start = option.start - 1,
 				effect = option.effect.indexOf(',') < 0 ? option.effect : option.effect.replace(' ', '').split(',')[0],
 				paginationEffect = option.effect.indexOf(',') < 0 ? effect : option.effect.replace(' ', '').split(',')[1],
