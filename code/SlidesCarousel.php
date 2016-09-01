@@ -42,6 +42,10 @@ class SlidesCarousel extends ImageCarousel {
 		$scripts = array(
 				self::$jQuery,
 				'banners/slides/source/slides.min.jquery.js'
+				//DM: to automatically use minified version on live, unminified on dev.
+				//	commented out because it could cause devs to forget to minify the code when they make changes
+				//	(use yui-compressor to do that)
+				//'banners/slides/source/slides.' . (Director::isLive() ? "min.":"") . 'jquery.js'
 		);
 		foreach( $scripts as $script ) {
 			Requirements::javascript($script);
